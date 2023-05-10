@@ -5,7 +5,7 @@ import { ReactCdkStack } from '../lib/react-cdk-stack';
 
 const app = new cdk.App();
 new ReactCdkStack(app, 'ReactCdkStack', {
-  stackName: 'react-sdk-stack-dev',
+  stackName: 'react-cdk-stack-dev',
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,
