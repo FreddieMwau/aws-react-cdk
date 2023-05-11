@@ -1,4 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
+import * as core from 'aws-cdk-lib/core';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -12,11 +13,13 @@ export class ReactCdkStack extends cdk.Stack {
 
     // Add S3 s3.Bucket
     const s3Site = new s3.Bucket(this, `CDK-React-UI`, {
-      // bucketName: 'cdk-reactapp-s3bucket',
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+      accessControl: s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
+      bucketName: core.PhysicalName.GENERATE_IF_NEEDED,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       versioned: false,
-      publicReadAccess: false,
+      publicReadAccess: true,
       encryption: s3.BucketEncryption.S3_MANAGED,
       cors:[
         {
