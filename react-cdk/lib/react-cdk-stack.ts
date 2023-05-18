@@ -2,10 +2,8 @@ import * as cdk from 'aws-cdk-lib';
 import * as core from 'aws-cdk-lib/core';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class ReactCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -13,25 +11,14 @@ export class ReactCdkStack extends cdk.Stack {
 
     // Add S3 s3.Bucket
     const s3Site = new s3.Bucket(this, `CDK-React-UI`, {
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       accessControl: s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
       bucketName: core.PhysicalName.GENERATE_IF_NEEDED,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      websiteIndexDocument: 'index.html',
       autoDeleteObjects: true,
       versioned: false,
-      publicReadAccess: true,
       encryption: s3.BucketEncryption.S3_MANAGED,
-      cors:[
-        {
-          allowedMethods: [
-            s3.HttpMethods.GET,
-            s3.HttpMethods.POST,
-            s3.HttpMethods.PUT,
-          ],
-          allowedOrigins: ['http:localhost:3000'],
-          allowedHeaders: ['*'],
-        },
-      ],
       lifecycleRules: [
         {
           abortIncompleteMultipartUploadAfter: cdk.Duration.days(90),
@@ -45,7 +32,11 @@ export class ReactCdkStack extends cdk.Stack {
         },
       ],
     });
-    s3Site.grantRead(new iam.AccountRootPrincipal());
+
+    const oia = new cloudfront.OriginAccessIdentity(this, 'OIA', {
+      comment: "Created by JG"
+    });
+    s3Site.grantRead(oia);
 
     // Create a new CloudFront Distribution
     const distribution = new cloudfront.CloudFrontWebDistribution(
@@ -55,7 +46,8 @@ export class ReactCdkStack extends cdk.Stack {
         originConfigs: [
           {
             s3OriginSource: {
-              s3BucketSource: s3Site
+              s3BucketSource: s3Site,
+              originAccessIdentity: oia
             },
             behaviors: [
               {
